@@ -80,6 +80,46 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                 "body" => "Hola, visita el sitio web hermos"
             ]
         ]);
+//botones
+    }else if (strpos($comentario,'boton') !== false){
+        $data = json_encode([
+            "messaging_product" => "whatsapp",
+            "recipient_type" => "individual",
+            "to" => $concat,
+            "type" => "interactive",
+            "interactive" => [
+                "type" => "button",
+                "body" => [
+                    "text" => "¿Confirmas tu registro?"
+                ],
+                "footer" => [
+                    "text" => "Selecciona una de las opciones"
+                ],
+                "action" => [
+                    "buttons" => [
+                        [
+                            "type" => "reply",
+                            "reply" => [
+                                "id" => "btnsi",
+                                "title" => "Si"
+                            ]
+                        ],[
+                            "type" => "reply",
+                            "reply" => [
+                                "id" => "btnno",
+                                "title" => "No"
+                            ]
+                        ],[
+                            "type" => "reply",
+                            "reply" => [
+                                "id" => "btntalvez",
+                                "title" => "Tal Vez"
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ]);
 
     }else if($comentario == '1') {
 
@@ -205,7 +245,11 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                 "body" => "🚀 Hola, visita mi web hermos.com para más información.\n \n📌Por favor, ingresa un número #️⃣ para recibir información.\n \n1️⃣. Información del Curso. ❔\n2️⃣. Ubicación del local. 📍\n3️⃣. Enviar temario en pdf. 📄\n4️⃣. Audio explicando curso. 🎧\n5️⃣. Video de Introducción. ⏯️\n6️⃣. Hablar con hermos. 🙋‍♂️\n7️⃣. Horario de Atención. 🕜"
             ]
         ]);
-    }
+
+//botones
+}
+
+
 
     // Configuración de la solicitud HTTP
     $options = [
@@ -237,6 +281,8 @@ function EnviarMensajeWhatsapp($comentario, $numero)
         echo "Mensaje enviado con éxito\n";
     }
 }
+
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = file_get_contents('php://input');
