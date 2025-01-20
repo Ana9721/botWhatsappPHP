@@ -234,7 +234,7 @@ function EnviarMensajeWhatsapp($comentario, $numero)
     if ($response === false) {
         echo "Error al enviar el mensaje\n";
     } else {
-        echo "Mensaje enviado con exito\n";
+        echo "Mensaje enviado con éxito\n";
     }
 }
 
