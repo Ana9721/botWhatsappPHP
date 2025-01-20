@@ -264,6 +264,30 @@ function EnviarMensajeWhatsapp($comentario, $numero)
         ]
     ]);
 
+}else if (strpos($comentario,'btndireccion') !== false){
+    $data = json_encode([
+        "messaging_product" => "whatsapp",
+        "recipient_type" => "individual",
+        "to" => $concat,  // Usa el número formateado
+        "type" => "text",
+        "text" => [
+            "preview_url" => false,
+            "body" => "ubicacion de local"
+        ]
+    ]);
+
+}else if (strpos($comentario,'btnentrega') !== false){
+    $data = json_encode([
+        "messaging_product" => "whatsapp",
+        "recipient_type" => "individual",
+        "to" => $concat,  // Usa el número formateado
+        "type" => "text",
+        "text" => [
+            "preview_url" => false,
+            "body" => "entregas solo de lunes a viernes de 8am a pm"
+        ]
+    ]);
+
 
 
 
