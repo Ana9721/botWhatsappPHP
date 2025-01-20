@@ -23,13 +23,49 @@ function recibirMensajes($req, $res)
         $entry = $req['entry'][0];
         $changes = $entry['changes'][0];
         $value = $changes['value'];
-        $objetomensaje = $value['messages'];
-        $mensaje = $objetomensaje[0];
+        $objetomensaje = $value['messages'];   
 
-        $comentario = $mensaje['text']['body'];
-        $numero = $mensaje['from']; 
+        if($objetomensaje){
+            $messages = $objetomensaje[0];
+
+            if(array_key_exists("type",$messages )){
+                $tipo = $messages["type"];
+
+                if($tipo == "interactive"){
+                    $tipo_interactivo = $messages["interactive"]["type"];
+
+                    if( $tipo_interactivo == "button_reply"){
+
+                        $comentario = $messages["interactive"]["button_reply"]["id"];
+                        $numero = $messages['from']; 
+
+                        EnviarMensajeWhatsapp($comentario, $numero);
+
+                    } else if ($tipo_interactivo == "list_reply"){
+
+                        $comentario = $messages["interactive"]["list_reply"]["id"];
+                        $numero = $messages['from']; 
+
+                        EnviarMensajeWhatsapp($comentario, $numero);
+
+                    }
+
+                }
+
+                if (array_key_exists("text",$messages )){
+                    $comentario = $messages['text']['body'];
+                    $numero = $messages['from']; 
+
+                    EnviarMensajeWhatsapp($comentario, $numero);
+
+                }
+
+            }
+        }
+
+       
         
-        $id = $mensaje['id'];
+        $id = $messages['id'];
         $archivo = "log.txt";
 
         // if (!verificarTextoEnArchivo($id, $archivo)){
@@ -38,13 +74,8 @@ function recibirMensajes($req, $res)
         //     fwrite($archivo, $texto);
         //     fclose($archivo);
        
-
-        EnviarMensajeWhatsapp($comentario, $numero);
-    
-        $archivo = fopen("log.txt", "a");
-        $texto = json_encode($numero);
-        fwrite($archivo, $texto);
-        fclose($archivo);
+     
+        
 
         $res->send("EVENT_RECEIVED");
     } catch (Exception $e) {
@@ -120,6 +151,44 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                 ]
             ]
         ]);
+
+    }else if (strpos($comentario,'btnsi') !== false){
+        $data = json_encode([
+            "messaging_product" => "whatsapp",
+            "recipient_type" => "individual",
+            "to" => $concat,  // Usa el número formateado
+            "type" => "text",
+            "text" => [
+                "preview_url" => false,
+                "body" => "Gracias por aceptar"
+            ]
+        ]);
+
+    }else if (strpos($comentario,'btnno') !== false){
+        $data = json_encode([
+            "messaging_product" => "whatsapp",
+            "recipient_type" => "individual",
+            "to" => $concat,  // Usa el número formateado
+            "type" => "text",
+            "text" => [
+                "preview_url" => false,
+                "body" => "es una lastima"
+            ]
+        ]);
+
+    }else if (strpos($comentario,'btntalvez') !== false){
+        $data = json_encode([
+            "messaging_product" => "whatsapp",
+            "recipient_type" => "individual",
+            "to" => $concat,  // Usa el número formateado
+            "type" => "text",
+            "text" => [
+                "preview_url" => false,
+                "body" => "De acuerdo, esperaremos su respuesta"
+            ]
+        ]);
+
+
 
     }else if($comentario == '1') {
 
