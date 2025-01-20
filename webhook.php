@@ -187,6 +187,61 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                 "body" => "De acuerdo, esperaremos su respuesta"
             ]
         ]);
+    
+    // lista
+} else if (strpos($comentario, 'lista') !== false) {
+    $data = json_encode([
+        "messaging_product" => "whatsapp",        
+        "to" => $concat,
+        "type" => "interactive",
+        "interactive" => [
+            "type" => "list",
+            "body" => [
+                "text" => "Seleccionar alguna opción."
+            ],
+            "footer" => [
+                "text" => "Selecciona una de las opciones para poder ayudarte."
+            ],
+            "action" => [
+                "button" => "Ver opciones",
+                "sections" => [
+                    [
+                        "title" => "Compra y venta",
+                        "rows" => [
+                            [
+                                "id" => "btncompra",
+                                "title" => "comprar",
+                                "description" => "Compra los mejores artículos de tecnología"
+                            ],
+                            [
+                                "id" => "btnvender",
+                                "title" => "vender",
+                                "description" => "Vende lo que ya no estés usando"
+                            ]
+                        ]
+                    ],
+                    [
+                        "title" => "Distribución y entrega",
+                        "rows" => [
+                            [
+                                "id" => "btndireccion",
+                                "title" => "Local",
+                                "description" => "Puedes visitar nuestro local"
+                            ],
+                            [
+                                "id" => "btnentrega",
+                                "title" => "Entrega",
+                                "description" => "La entrega se realiza todos los días"
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    ]);
+
+
+
 
 
 
