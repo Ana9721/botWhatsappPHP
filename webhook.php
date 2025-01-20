@@ -209,7 +209,7 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                         "title" => "Compra y venta",
                         "rows" => [
                             [
-                                "id" => "btncompra",
+                                "id" => "btncomprar",
                                 "title" => "comprar",
                                 "description" => "Compra los mejores artículos de tecnología"
                             ],
@@ -239,6 +239,31 @@ function EnviarMensajeWhatsapp($comentario, $numero)
             ]
         ]
     ]);
+
+}else if (strpos($comentario,'btncomprar') !== false){
+    $data = json_encode([
+        "messaging_product" => "whatsapp",
+        "recipient_type" => "individual",
+        "to" => $concat,  // Usa el número formateado
+        "type" => "text",
+        "text" => [
+            "preview_url" => false,
+            "body" => "Gracias por comprar"
+        ]
+    ]);
+
+}else if (strpos($comentario,'btnvender') !== false){
+    $data = json_encode([
+        "messaging_product" => "whatsapp",
+        "recipient_type" => "individual",
+        "to" => $concat,  // Usa el número formateado
+        "type" => "text",
+        "text" => [
+            "preview_url" => false,
+            "body" => "Gracias por vender"
+        ]
+    ]);
+
 
 
 
