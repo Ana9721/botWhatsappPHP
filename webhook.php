@@ -2,6 +2,10 @@
 const TOKEN_HERMOS = "APIHERMOS";
 const WEBHOOK_URL = "https://www.hermos.com.mx/webhook.php";
 
+require_once ("config/conexion.php");
+require_once ("models/Registro.php");
+
+
 function verificarToken($req, $res)
 {
     try {
@@ -58,6 +62,10 @@ function recibirMensajes($req, $res)
 
                     EnviarMensajeWhatsapp($comentario, $numero);
 
+                    $registro = new Registro();
+
+                    $registro->insert_registro($numero, $comentario);
+
                 }
 
             }
@@ -78,6 +86,7 @@ function recibirMensajes($req, $res)
         
 
         $res->send("EVENT_RECEIVED");
+        exit;
     } catch (Exception $e) {
         $res->send("EVENT_RECEIVED");
 // $res->header('Content-Type: application/json');
