@@ -29,6 +29,10 @@ function recibirMensajes($req, $res)
         $value = $changes['value'];
         $objetomensaje = $value['messages'];
 
+        //nos muestra los datos en la bd en la columna log_texto los datos de tipo json.
+        $registro = new Registro();
+        $registro->insert_registro("",json_encode($entry));
+
         if ($objetomensaje) {
             $messages = $objetomensaje[0];
 
