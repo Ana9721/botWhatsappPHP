@@ -2,9 +2,9 @@
 const TOKEN_HERMOS = "APIHERMOS";
 const WEBHOOK_URL = "https://www.hermos.com.mx/webhook.php";
 
-require_once ("config/conexion.php");
-require_once ("models/Registro.php");
-
+require_once("config/conexion.php");
+require_once("models/Registro.php");
+// require_once("models/Usuario.php");
 
 function verificarToken($req, $res)
 {
@@ -27,88 +27,66 @@ function recibirMensajes($req, $res)
         $entry = $req['entry'][0];
         $changes = $entry['changes'][0];
         $value = $changes['value'];
-        $objetomensaje = $value['messages'];   
+        $objetomensaje = $value['messages'];
 
-        if($objetomensaje){
+        if ($objetomensaje) {
             $messages = $objetomensaje[0];
 
-            if(array_key_exists("type",$messages )){
+            if (array_key_exists("type", $messages)) {
                 $tipo = $messages["type"];
 
-                if($tipo == "interactive"){
+                if ($tipo == "interactive") {
                     $tipo_interactivo = $messages["interactive"]["type"];
 
-                    if( $tipo_interactivo == "button_reply"){
+                    if ($tipo_interactivo == "button_reply") {
 
                         $comentario = $messages["interactive"]["button_reply"]["id"];
-                        $numero = $messages['from']; 
+                        $numero = $messages['from'];
 
                         EnviarMensajeWhatsapp($comentario, $numero);
-
-                    } else if ($tipo_interactivo == "list_reply"){
+                    } else if ($tipo_interactivo == "list_reply") {
 
                         $comentario = $messages["interactive"]["list_reply"]["id"];
-                        $numero = $messages['from']; 
+                        $numero = $messages['from'];
 
                         EnviarMensajeWhatsapp($comentario, $numero);
-
+                        $registro = new Registro();
+                        $registro->insert_registro($numero, $comentario);
                     }
-
                 }
 
-                if (array_key_exists("text",$messages )){
+                if (array_key_exists("text", $messages)) {
                     $comentario = $messages['text']['body'];
-                    $numero = $messages['from']; 
+                    $numero = $messages['from'];
 
                     EnviarMensajeWhatsapp($comentario, $numero);
 
                     $registro = new Registro();
-
                     $registro->insert_registro($numero, $comentario);
-
                 }
-
             }
         }
-
-       
-        
-        $id = $messages['id'];
-        $archivo = "log.txt";
-
-        // if (!verificarTextoEnArchivo($id, $archivo)){
-        //     $archivo = fopen($archivo, "a");
-        //     $texto = json_encode($id).",".$numero.",".$comentario;
-        //     fwrite($archivo, $texto);
-        //     fclose($archivo);
-       
-     
-        
-
-        $res->send("EVENT_RECEIVED");
+      
+        echo json_encode(['message' => 'EVENT_RECEIVED']);
         exit;
     } catch (Exception $e) {
-        $res->send("EVENT_RECEIVED");
-// $res->header('Content-Type: application/json');
-// $res->status(200)->send(json_encode(['message' => 'EVENT_RECEIVED']));
-// } catch (Exception $e) {
-// $res->header('Content-Type: application/json');
-// $res->status(200)->send(json_encode(['message' => 'EVENT_RECEIVED']));
-
+        echo json_encode(['message' => 'EVENT_RECEIVED']);
+        exit;
     }
 }
 
+
 function EnviarMensajeWhatsapp($comentario, $numero)
 {
-// Formatea el número 
+    // Formatea el número 
     $lada = substr($numero, 0, 2);
     $num = substr($numero, 3, 13);
     $concat = $lada . $num;  //num formateado
 
-// Convertir el comentario a minúsculas
+    // Convertir el comentario a minúsculas
     $comentario = strtolower($comentario);
 
-// Preparar el mensaje si contiene 'hola'
+    // Preparar el mensaje si contiene 'hola'
     if (strpos($comentario, 'hola') !== false) {
         $data = json_encode([
             "messaging_product" => "whatsapp",
@@ -120,8 +98,9 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                 "body" => "Hola, visita el sitio web hermos"
             ]
         ]);
+
 //botones
-    }else if (strpos($comentario,'boton') !== false){
+    } else if (strpos($comentario, 'boton') !== false) {
         $data = json_encode([
             "messaging_product" => "whatsapp",
             "recipient_type" => "individual",
@@ -143,13 +122,15 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                                 "id" => "btnsi",
                                 "title" => "Si"
                             ]
-                        ],[
+                        ],
+                        [
                             "type" => "reply",
                             "reply" => [
                                 "id" => "btnno",
                                 "title" => "No"
                             ]
-                        ],[
+                        ],
+                        [
                             "type" => "reply",
                             "reply" => [
                                 "id" => "btntalvez",
@@ -160,8 +141,7 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                 ]
             ]
         ]);
-
-    }else if (strpos($comentario,'btnsi') !== false){
+    } else if (strpos($comentario, 'btnsi') !== false) {
         $data = json_encode([
             "messaging_product" => "whatsapp",
             "recipient_type" => "individual",
@@ -172,8 +152,7 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                 "body" => "Gracias por aceptar"
             ]
         ]);
-
-    }else if (strpos($comentario,'btnno') !== false){
+    } else if (strpos($comentario, 'btnno') !== false) {
         $data = json_encode([
             "messaging_product" => "whatsapp",
             "recipient_type" => "individual",
@@ -184,8 +163,7 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                 "body" => "es una lastima"
             ]
         ]);
-
-    }else if (strpos($comentario,'btntalvez') !== false){
+    } else if (strpos($comentario, 'btntalvez') !== false) {
         $data = json_encode([
             "messaging_product" => "whatsapp",
             "recipient_type" => "individual",
@@ -196,114 +174,103 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                 "body" => "De acuerdo, esperaremos su respuesta"
             ]
         ]);
-    
-    // lista
-} else if (strpos($comentario, 'lista') !== false) {
-    $data = json_encode([
-        "messaging_product" => "whatsapp",        
-        "to" => $concat,
-        "type" => "interactive",
-        "interactive" => [
-            "type" => "list",
-            "body" => [
-                "text" => "Seleccionar alguna opción."
-            ],
-            "footer" => [
-                "text" => "Selecciona una de las opciones para poder ayudarte."
-            ],
-            "action" => [
-                "button" => "Ver opciones",
-                "sections" => [
-                    [
-                        "title" => "Compra y venta",
-                        "rows" => [
-                            [
-                                "id" => "btncomprar",
-                                "title" => "comprar",
-                                "description" => "Compra los mejores artículos de tecnología"
-                            ],
-                            [
-                                "id" => "btnvender",
-                                "title" => "vender",
-                                "description" => "Vende lo que ya no estés usando"
+
+        // lista
+    } else if (strpos($comentario, 'lista') !== false) {
+        $data = json_encode([
+            "messaging_product" => "whatsapp",
+            "to" => $concat,
+            "type" => "interactive",
+            "interactive" => [
+                "type" => "list",
+                "body" => [
+                    "text" => "Seleccionar alguna opción."
+                ],
+                "footer" => [
+                    "text" => "Selecciona una de las opciones para poder ayudarte."
+                ],
+                "action" => [
+                    "button" => "Ver opciones",
+                    "sections" => [
+                        [
+                            "title" => "Compra y venta",
+                            "rows" => [
+                                [
+                                    "id" => "btncomprar",
+                                    "title" => "comprar",
+                                    "description" => "Compra los mejores artículos de tecnología"
+                                ],
+                                [
+                                    "id" => "btnvender",
+                                    "title" => "vender",
+                                    "description" => "Vende lo que ya no estés usando"
+                                ]
                             ]
-                        ]
-                    ],
-                    [
-                        "title" => "Distribución y entrega",
-                        "rows" => [
-                            [
-                                "id" => "btndireccion",
-                                "title" => "Local",
-                                "description" => "Puedes visitar nuestro local"
-                            ],
-                            [
-                                "id" => "btnentrega",
-                                "title" => "Entrega",
-                                "description" => "La entrega se realiza todos los días"
+                        ],
+                        [
+                            "title" => "Distribución y entrega",
+                            "rows" => [
+                                [
+                                    "id" => "btndireccion",
+                                    "title" => "Local",
+                                    "description" => "Puedes visitar nuestro local"
+                                ],
+                                [
+                                    "id" => "btnentrega",
+                                    "title" => "Entrega",
+                                    "description" => "La entrega se realiza todos los días"
+                                ]
                             ]
                         ]
                     ]
                 ]
             ]
-        ]
-    ]);
-
-}else if (strpos($comentario,'btncomprar') !== false){
-    $data = json_encode([
-        "messaging_product" => "whatsapp",
-        "recipient_type" => "individual",
-        "to" => $concat,  // Usa el número formateado
-        "type" => "text",
-        "text" => [
-            "preview_url" => false,
-            "body" => "Gracias por comprar"
-        ]
-    ]);
-
-}else if (strpos($comentario,'btnvender') !== false){
-    $data = json_encode([
-        "messaging_product" => "whatsapp",
-        "recipient_type" => "individual",
-        "to" => $concat,  // Usa el número formateado
-        "type" => "text",
-        "text" => [
-            "preview_url" => false,
-            "body" => "Gracias por vender"
-        ]
-    ]);
-
-}else if (strpos($comentario,'btndireccion') !== false){
-    $data = json_encode([
-        "messaging_product" => "whatsapp",
-        "recipient_type" => "individual",
-        "to" => $concat,  // Usa el número formateado
-        "type" => "text",
-        "text" => [
-            "preview_url" => false,
-            "body" => "ubicacion de local"
-        ]
-    ]);
-
-}else if (strpos($comentario,'btnentrega') !== false){
-    $data = json_encode([
-        "messaging_product" => "whatsapp",
-        "recipient_type" => "individual",
-        "to" => $concat,  // Usa el número formateado
-        "type" => "text",
-        "text" => [
-            "preview_url" => false,
-            "body" => "entregas solo de lunes a viernes de 8am a pm"
-        ]
-    ]);
-
-
-
-
-
-
-
-    }else if($comentario == '1') {
+        ]);
+    } else if (strpos($comentario, 'btncomprar') !== false) {
+        $data = json_encode([
+            "messaging_product" => "whatsapp",
+            "recipient_type" => "individual",
+            "to" => $concat,  // Usa el número formateado
+            "type" => "text",
+            "text" => [
+                "preview_url" => false,
+                "body" => "Gracias por comprar"
+            ]
+        ]);
+    } else if (strpos($comentario, 'btnvender') !== false) {
+        $data = json_encode([
+            "messaging_product" => "whatsapp",
+            "recipient_type" => "individual",
+            "to" => $concat,  // Usa el número formateado
+            "type" => "text",
+            "text" => [
+                "preview_url" => false,
+                "body" => "Gracias por vender"
+            ]
+        ]);
+    } else if (strpos($comentario, 'btndireccion') !== false) {
+        $data = json_encode([
+            "messaging_product" => "whatsapp",
+            "recipient_type" => "individual",
+            "to" => $concat,  // Usa el número formateado
+            "type" => "text",
+            "text" => [
+                "preview_url" => false,
+                "body" => "ubicacion de local"
+            ]
+        ]);
+    } else if (strpos($comentario, 'btnentrega') !== false) {
+        $data = json_encode([
+            "messaging_product" => "whatsapp",
+            "recipient_type" => "individual",
+            "to" => $concat,  // Usa el número formateado
+            "type" => "text",
+            "text" => [
+                "preview_url" => false,
+                "body" => "entregas solo de lunes a viernes de 8am a pm"
+            ]
+        ]);
+    } else if ($comentario == '1') {
 
         $data = json_encode([
             "messaging_product" => "whatsapp",
@@ -315,48 +282,47 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                 "body" => "Lorem ipsum is simply dummy "
             ]
         ]);
-
-    }else if($comentario == '2') {
+    } else if ($comentario == '2') {
         $data = json_encode([
             "messaging_product" => "whatsapp",
             "recipient_type" => "individual",
             "to" => $concat,  // Usa el número formateado
             "type" => "location",
-            "location"=> [
-                    "latitude" => "20.5222851",
-                    "longitude" => "-100.8307739",
-                    "name" => "Hermos Sucursal Celaya",
-                    "address" => "Hermos Sucursal Celaya"
-                ]
+            "location" => [
+                "latitude" => "20.5222851",
+                "longitude" => "-100.8307739",
+                "name" => "Hermos Sucursal Celaya",
+                "address" => "Hermos Sucursal Celaya"
+            ]
         ]);
 
-// no envia el doc pdf
-        }else if ($comentario == '3') {
-            $data = json_encode([
-                "messaging_product" => "whatsapp",    
-                "recipient_type"=> "individual",
-                "to" => $concat,
-                "type" => "document",
-                "document"=> [
-                    "link" => "http://s29.q4cdn.com/175625835/files/doc_downloads/test.pdf",
-                    "caption" => "Temario del Curso #001"
-                ]
-            ]);
-
-// audio
-    }else if ($comentario=='4') {
+        // doc pdf
+    } else if ($comentario == '3') {
         $data = json_encode([
-            "messaging_product" => "whatsapp",    
-            "recipient_type"=> "individual",
+            "messaging_product" => "whatsapp",
+            "recipient_type" => "individual",
+            "to" => $concat,
+            "type" => "document",
+            "document" => [
+                "link" => "http://s29.q4cdn.com/175625835/files/doc_downloads/test.pdf",
+                "caption" => "Temario del Curso #001"
+            ]
+        ]);
+
+        // audio
+    } else if ($comentario == '4') {
+        $data = json_encode([
+            "messaging_product" => "whatsapp",
+            "recipient_type" => "individual",
             "to" => $concat,
             "type" => "audio",
-            "audio"=> [
+            "audio" => [
                 "link" => "https://filesamples.com/samples/audio/mp3/sample1.mp3",
             ]
         ]);
 
-//video
-    }else if ($comentario=='5') {
+        //video
+    } else if ($comentario == '5') {
         $data = json_encode([
             "messaging_product" => "whatsapp",
             "to" => $concat,
@@ -366,8 +332,8 @@ function EnviarMensajeWhatsapp($comentario, $numero)
             )
         ]);
 
-//hablar con 
-    }else if ($comentario=='6') {
+        //hablar con 
+    } else if ($comentario == '6') {
         $data = json_encode([
             "messaging_product" => "whatsapp",
             "recipient_type" => "individual",
@@ -379,8 +345,8 @@ function EnviarMensajeWhatsapp($comentario, $numero)
             )
         ]);
 
-// horario de atencion 
-    }else if ($comentario =='7') {
+        // horario de atencion 
+    } else if ($comentario == '7') {
         $data = json_encode([
             "messaging_product" => "whatsapp",
             "recipient_type" => "individual",
@@ -391,8 +357,7 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                 "body" => "📅 Horario de Atención: Lunes a Viernes. \n🕜 Horario: 8:00 a.m. a 6:00 p.m. 🤓"
             )
         ]);
-    
-    }else if (strpos($comentario, 'gracias') !== false) {
+    } else if (strpos($comentario, 'gracias') !== false) {
         $data = json_encode([
             "messaging_product" => "whatsapp",
             "recipient_type" => "individual",
@@ -403,8 +368,7 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                 "body" => "Gracias a ti por contactárnos. "
             )
         ]);
-
-    }else if (strpos($comentario, 'adios') !== false || strpos($comentario, 'bye') !== false || strpos($comentario, 'Nos vemos') !== false || strpos($comentario, 'hasta pronto') !== false) {
+    } else if (strpos($comentario, 'adios') !== false || strpos($comentario, 'bye') !== false || strpos($comentario, 'Nos vemos') !== false || strpos($comentario, 'hasta pronto') !== false) {
         $data = json_encode([
             "messaging_product" => "whatsapp",
             "recipient_type" => "individual",
@@ -415,7 +379,6 @@ function EnviarMensajeWhatsapp($comentario, $numero)
                 "body" => "Hasta luego. "
             )
         ]);
-
     } else {
         $data = json_encode([
             "messaging_product" => "whatsapp",
@@ -428,8 +391,8 @@ function EnviarMensajeWhatsapp($comentario, $numero)
             ]
         ]);
 
-//botones
-}
+        //botones
+    }
 
 
 
@@ -443,11 +406,11 @@ function EnviarMensajeWhatsapp($comentario, $numero)
         ]
     ];
 
-// Realizar la solicitud
+    // Realizar la solicitud
     $context = stream_context_create($options);
     $response = file_get_contents('https://graph.facebook.com/v21.0/553646597821221/messages', false, $context);
 
-// Comprobar la respuesta
+    // Comprobar la respuesta
     if ($response === false) {
         echo "Error al enviar el mensaje\n";
     } else {
